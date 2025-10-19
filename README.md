@@ -1,2 +1,2 @@
-# 3ro-B-Mecatronica
-Carpetas para agregar trabajos de trimestres 1, 2 y 3
+# Carpeta-1er-Trimestre
+Carpeta para agregar trabajos de trimestre 1
