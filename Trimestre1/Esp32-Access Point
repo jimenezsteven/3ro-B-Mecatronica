@@ -1,5 +1,3 @@
-from machine import Pin
-from time import sleep
 import machine
 import network
 import time
@@ -11,7 +9,7 @@ PASSWORD = "julito1528"
 # Configuración del punto de acceso
 ap = network.WLAN(network.AP_IF)
 ap.active(True)
-ap.config(essid=SSID, password=PASSWORD, authmode=network.AUTH_WPA_WPA2_PSK)
+ap.config(essid=SSID, password=PASSWORD)
 
 ip_address = ap.ifconfig()[0]
 print("ESP32 configurado como Access Point")
