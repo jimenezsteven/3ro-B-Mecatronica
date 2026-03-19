@@ -1,0 +1,57 @@
+#include <WiFi.h>
+#include <ThingerESP32.h>
+
+#define USERNAME "DylanS"
+#define DEVICE_ID "ultra"
+#define DEVICE_CREDENTIAL "123456"
+
+#define SSID "FAMILIA JIMENEZ"
+#define SSID_PASSWORD "julito1528"
+
+#define TRIG_PIN 5
+#define ECHO_PIN 18
+
+ThingerESP32 thing(USERNAME, DEVICE_ID, DEVICE_CREDENTIAL);
+
+long duracion;
+float distancia;
+String distancia_txt;
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  thing.add_wifi(SSID, SSID_PASSWORD);
+
+  //  Recurso TEXTO (no numérico)
+  thing["distancia_cm"] >> outputValue(distancia_txt);
+}
+
+void loop() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  duracion = pulseIn(ECHO_PIN, HIGH, 30000);
+
+  if (duracion > 0) {
+    distancia = duracion * 0.034 / 2;
+
+    //  Convertir a texto con 2 decimales 
+    char buffer[10];
+    dtostrf(distancia, 0, 2, buffer);
+    distancia_txt = String(buffer);
+  } else {
+    distancia_txt = "Error";
+  }
+
+  Serial.print("Distancia: ");
+  Serial.println(distancia_txt + " cm");
+
+  thing.handle();
+  delay(1000);
+}
