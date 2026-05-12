@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ave Sensor ESP32</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(to bottom,#38bdf8,#0ea5e9,#1e3a8a);
+    color:white;
+    text-align:center;
+}
+
+/* Título */
+h1{
+    margin-top:20px;
+    font-size:28px;
+}
+
+/* Caja de distancia */
+.card{
+    position:absolute;
+    top:20px;
+    right:20px;
+    background:rgba(0,0,0,0.35);
+    padding:15px 20px;
+    border-radius:15px;
+    backdrop-filter:blur(5px);
+}
+
+.valor{
+    font-size:35px;
+    font-weight:bold;
+    color:#facc15;
+}
+
+/* Escenario */
+.escena{
+    position:relative;
+    width:100%;
+    height:100vh;
+}
+
+/* Ave */
+.ave{
+    position:absolute;
+    left:15%;
+    bottom:100px;
+    font-size:80px;
+    transition:bottom 1s ease;
+    animation:aleteo 0.5s infinite alternate;
+}
+
+/* Nubes */
+.nube{
+    position:absolute;
+    font-size:60px;
+    opacity:0.8;
+    animation:moverNube 20s linear infinite;
+}
+
+.n1{ top:100px; left:-100px; animation-duration:18s;}
+.n2{ top:220px; left:-200px; animation-duration:25s;}
+.n3{ top:60px; left:-300px; animation-duration:30s;}
+
+@keyframes moverNube{
+    from{transform:translateX(0);}
+    to{transform:translateX(140vw);}
+}
+
+@keyframes aleteo{
+    from{transform:translateY(0px);}
+    to{transform:translateY(-8px);}
+}
+
+.suelo{
+    position:absolute;
+    bottom:0;
+    width:100%;
+    height:80px;
+    background:#14532d;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🐦 Ave Controlada por Distancia</h1>
+
+<div class="card">
+    <p>Distancia actual</p>
+    <div id="distancia" class="valor">-- cm</div>
+</div>
+
+<div class="escena">
+    <div class="nube n1">☁️</div>
+    <div class="nube n2">☁️</div>
+    <div class="nube n3">☁️</div>
+
+    <div id="ave" class="ave">🕊️</div>
+
+    <div class="suelo"></div>
+</div>
+
+<script>
+const TOKEN = "57c69b13-315c-457a-a79c-2a86582219f6";
+
+async function obtenerDatos(){
+    try{
+        const response = await fetch(
+          "https://api.tago.io/data?variable=distancia&query=last_value",
+        {
+            headers:{
+                "Device-Token": TOKEN
+            }
+        });
+
+        const data = await response.json();
+
+        if(data.result.length > 0){
+
+            let distancia = parseFloat(data.result[0].value);
+
+            document.getElementById("distancia").innerText =
+                distancia + " cm";
+
+            moverAve(distancia);
+        }
+
+    }catch(error){
+        console.error("Error:", error);
+    }
+}
+
+/* Mientras menor distancia, más sube */
+function moverAve(distancia){
+
+    let altura = 100;
+
+    if(distancia <= 5){
+        altura = 500;
+    }else if(distancia <= 10){
+        altura = 430;
+    }else if(distancia <= 20){
+        altura = 350;
+    }else if(distancia <= 30){
+        altura = 250;
+    }else if(distancia <= 40){
+        altura = 180;
+    }else{
+        altura = 100;
+    }
+
+    document.getElementById("ave").style.bottom = altura + "px";
+}
+
+setInterval(obtenerDatos,3000);
+obtenerDatos();
+</script>
+
+</body>
+</html>
