@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard BME680</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Orbitron',sans-serif;
+    background:#050816;
+    color:white;
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+body::before{
+    content:'';
+    position:fixed;
+    width:500px;
+    height:500px;
+    background:#00ffff25;
+    border-radius:50%;
+    filter:blur(120px);
+    top:-200px;
+    left:-150px;
+}
+
+body::after{
+    content:'';
+    position:fixed;
+    width:400px;
+    height:400px;
+    background:#0066ff20;
+    border-radius:50%;
+    filter:blur(120px);
+    bottom:-150px;
+    right:-100px;
+}
+
+.container{
+    position:relative;
+    z-index:2;
+    padding:40px;
+}
+
+.title{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.title h1{
+    font-size:3rem;
+    color:#00ffff;
+    text-shadow:0 0 20px #00ffff;
+}
+
+.title p{
+    margin-top:10px;
+    color:#94a3b8;
+    letter-spacing:2px;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:25px;
+}
+
+.card{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(0,255,255,0.2);
+    border-radius:25px;
+    padding:30px;
+    backdrop-filter:blur(12px);
+    transition:0.3s;
+    box-shadow:
+        0 0 20px rgba(0,255,255,0.08),
+        inset 0 0 15px rgba(255,255,255,0.03);
+}
+
+.card:hover{
+    transform:translateY(-8px);
+    box-shadow:
+        0 0 25px rgba(0,255,255,0.3),
+        0 0 50px rgba(0,255,255,0.1);
+}
+
+.icon{
+    font-size:50px;
+    margin-bottom:20px;
+}
+
+.label{
+    color:#94a3b8;
+    font-size:15px;
+    margin-bottom:10px;
+}
+
+.value{
+    font-size:2.4rem;
+    color:#00ffff;
+    text-shadow:0 0 15px #00ffff;
+    font-weight:800;
+}
+
+.status{
+    margin-top:40px;
+    text-align:center;
+    color:#00ff99;
+    font-size:14px;
+    letter-spacing:2px;
+}
+
+.line{
+    width:100%;
+    height:2px;
+    margin:15px 0;
+    background:linear-gradient(to right,transparent,#00ffff,transparent);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="title">
+        <h1>SMART AIR MONITOR</h1>
+        <p>BME680 + TAGO.IO</p>
+    </div>
+
+    <div class="dashboard">
+
+        <div class="card">
+            <div class="icon">🌡️</div>
+            <div class="label">TEMPERATURA</div>
+            <div class="line"></div>
+            <div class="value" id="temp">-- °C</div>
+        </div>
+
+        <div class="card">
+            <div class="icon">💧</div>
+            <div class="label">HUMEDAD</div>
+            <div class="line"></div>
+            <div class="value" id="hum">-- %</div>
+        </div>
+
+        <div class="card">
+            <div class="icon">🌪️</div>
+            <div class="label">PRESIÓN</div>
+            <div class="line"></div>
+            <div class="value" id="pres">-- hPa</div>
+        </div>
+
+        <div class="card">
+            <div class="icon">🧪</div>
+            <div class="label">CALIDAD DE AIRE</div>
+            <div class="line"></div>
+            <div class="value" id="gas">--</div>
+        </div>
+
+    </div>
+
+    <div class="status" id="status">
+        CONECTANDO CON TAGO.IO...
+    </div>
+
+</div>
+
+<script>
+
+// =============================
+// PEGA TU TOKEN AQUÍ
+// =============================
+
+const TOKEN = "PON_AQUI_TU_TOKEN_TAGO";
+
+// =============================
+// OBTENER DATOS DESDE TAGO
+// =============================
+
+async function obtenerDatos(){
+
+    try{
+
+        const response = await fetch("https://api.tago.io/data",{
+            method:"GET",
+            headers:{
+                "Content-Type":"application/json",
+                "Device-Token": TOKEN
+            }
+        });
+
+        const datos = await response.json();
+
+        let temperatura = "--";
+        let humedad = "--";
+        let presion = "--";
+        let gas = "--";
+
+        datos.result.forEach(item => {
+
+            if(item.variable === "temperatura"){
+                temperatura = item.value;
+            }
+
+            if(item.variable === "humedad"){
+                humedad = item.value;
+            }
+
+            if(item.variable === "presion"){
+                presion = item.value;
+            }
+
+            if(item.variable === "gas"){
+                gas = item.value;
+            }
+
+        });
+
+        document.getElementById("temp").innerHTML =
+            temperatura + " °C";
+
+        document.getElementById("hum").innerHTML =
+            humedad + " %";
+
+        document.getElementById("pres").innerHTML =
+            presion + " hPa";
+
+        document.getElementById("gas").innerHTML =
+            gas;
+
+        document.getElementById("status").innerHTML =
+            "🟢 DATOS ACTUALIZADOS EN TIEMPO REAL";
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById("status").innerHTML =
+            "🔴 ERROR DE CONEXIÓN";
+
+    }
+
+}
+
+// actualizar cada 5 segundos
+setInterval(obtenerDatos,5000);
+
+// iniciar
+obtenerDatos();
+
+</script>
+
+</body>
+</html>
